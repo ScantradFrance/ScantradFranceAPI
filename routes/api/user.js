@@ -7,7 +7,7 @@ const router = Router();
 router.all('/*', (req, res, next) => {
         const bearerHeader = req.headers["authorization"];
         const bearerToken = bearerHeader === undefined ? null : bearerHeader.split(' ')[1];
-        if (bearerToken !== token) res.status(403).send({"error": "Invalid token"})
+        if (bearerToken !== token) res.status(403).send({"error": "Invalid authentication token"})
         else next();
 });
 
