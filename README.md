@@ -3,7 +3,7 @@ API pour voir les chapitres et mangas du site `https://scantrad.net`.
 
 ## Usage
 ```
-expo start
+npm start
 ```
 
 ## API
