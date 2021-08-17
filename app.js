@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { post } = require('axios');
 const express = require('express');
-const RssFeedEmitter = require('rss-feed-emitter')
+const RssFeedEmitter = require('rss-feed-emitter');
 const User = require('./models/User');
 const WebSocket = require('ws');
 const { port, mongodb_uri } = require('./config/secrets');
@@ -42,7 +42,7 @@ feeder.on('chapitres', function (item) {
 			thumbnail: links[1]
 		},
 		title: cutByMatch(item.description.match(/">(.*?)<\/a>/g).pop(), /">(.*?)<\/a>/g),
-		number: item.title.match(/\d+$/g)[0]
+		number: item.link.match(/[^\/]+$/g)[0]
 	};
 	// ws-sf
 	wss.clients.forEach(client => {
