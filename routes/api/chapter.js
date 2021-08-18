@@ -59,7 +59,7 @@ module.exports = scrapper => {
 			});
 	});
 
-	router.get('/:id/:number(\\d+)', (req, res) => {
+	router.get('/:id/:number([\\d|\\.]+)', (req, res) => {
 		scrapper.getPages(req.params.id, req.params.number)
 			.then(pages => {
 				if (!pages || !pages.length) return res.status(404).send({ "error": "No page found" });
