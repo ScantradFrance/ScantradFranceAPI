@@ -8,7 +8,7 @@ function getRecents(limit = 20) {
 		const $ = load(res.data);
 		return $("#home-chapter .home-manga").map((_, c) => ({
 			title: $(c).find($(".hm-info .hmi-sub .hm-font")).text().replace(/^ : /gm, ""),
-			number: $(c).find($(".hm-info .hmi-sub :first-child")).text().match(/(\d|\.)/g).join(''),
+				number: $(c).find($(".hm-link")).attr('href').match(/[^\/]+$/g)[0],
 			release_date: $(c).find($(".hmr-date .hm-font")).get(0).next.data,
 			manga: {
 				id: $(c).find($(".hm-image")).attr("data-slug"),
@@ -25,7 +25,7 @@ function getByManga(manga_id) {
 		const card = $("#chap-top");
 		if (!card.length) return null;
 		return card.find($("#chapitres .chapitre")).map((_, c) => ({
-			number: $(c).find($(".chl-num")).text().replace(/\D/gm, ""),
+			number: $(c).find($(".ch-left")).attr('href').match(/[^\/]+$/g)[0],
 			release_date: $(c).find($(".chl-date")).children().get(0).next.data
 		})).toArray();
 	});
