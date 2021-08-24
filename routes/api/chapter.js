@@ -38,8 +38,8 @@ module.exports = scrapper => {
 			getImageData(data, req.query).then(img => {
 				if (req.query.type === "base64") return res.status(200).send('data:image/png;base64,' + img.toString('base64'));
 				res.status(200).set({ 'Content-Type': 'image/jpeg' }).end(img, 'binary')
-			}).catch((err) => {
-				console.log(err);
+			}).catch(err => {
+				console.error(err);
 				res.status(500).send({ "error": "Internal server error" })
 			});
 		}).catch(err => {

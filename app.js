@@ -12,7 +12,7 @@ mongoose.connect(mongodb_uri, {
 	useUnifiedTopology: true,
 	useFindAndModify: false,
 	useCreateIndex: true
-}).catch(err => console.log(err));
+}).catch(console.error);
 
 // Express
 const app = express();
@@ -27,7 +27,7 @@ app.use(function(_req, res) {
 
 // Websocket
 const wss = new WebSocket.Server({ noServer: true });
-const server = app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
+const server = app.listen(port, () => console.info(`Listening at http://localhost:${port}`));
 server.on('upgrade', (request, socket, head) => { wss.handleUpgrade(request, socket, head, () => { }); });
 
 // RSS Feed
