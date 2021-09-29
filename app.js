@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 const { post } = require('axios');
 const express = require('express');
+require('dotenv').config()
 const RssFeedEmitter = require('rss-feed-emitter');
 const User = require('./models/User');
 const WebSocket = require('ws');
-const { port, mongodb_uri } = require('./config/secrets');
+const { saveMangaPlusPages } = require('./modules/scrapper/chapter');
 
 // Database
-mongoose.connect(mongodb_uri, {
+mongoose.connect(process.env.MONGODB_URI, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 	useFindAndModify: false,
@@ -27,7 +28,7 @@ app.use(function(_req, res) {
 
 // Websocket
 const wss = new WebSocket.Server({ noServer: true });
-const server = app.listen(port, () => console.info(`Listening at http://localhost:${port}`));
+const server = app.listen(process.env.PORT, () => console.info(`Listening at http://localhost:${process.env.PORT}`));
 server.on('upgrade', (request, socket, head) => { wss.handleUpgrade(request, socket, head, () => { }); });
 
 // RSS Feed
@@ -42,7 +43,7 @@ feeder.on('chapitres', function (item) {
 			thumbnail: links[1]
 		},
 		title: cutByMatch(item.description.match(/">(.*?)<\/a>/g).pop(), /">(.*?)<\/a>/g),
-		number: item.link.match(/[^\/]+$/g)[0]
+		number: Number(item.link.match(/[^\/]+$/g)[0])
 	};
 	// ws-sf
 	wss.clients.forEach(client => {
@@ -68,6 +69,8 @@ feeder.on('chapitres', function (item) {
 			},
 		}).catch(console.error);
 	}).catch(console.error);
+	// Mangaplus
+	saveMangaPlusPages(chapter.manga.id, chapter.number);
 });
 feeder.on('error', () => {});
 cutByMatch = (str, regex) => Array.from(str.matchAll(regex), x => x[1])[0];

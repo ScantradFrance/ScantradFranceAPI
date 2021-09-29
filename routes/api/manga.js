@@ -7,9 +7,8 @@ router.get('/', (_req, res) => {
 		.then(mangas => {
 			if (!(mangas && mangas.length > 0)) return res.status(404).send({ "error": "No manga found" });
 			res.status(200).send(mangas);
-		}).catch(err => {
-			console.error(err);
-			res.status(500).send({ "error": "Internal server error" });
+		}).catch(() => {
+			res.status(404).send({ "error": "No manga found" });
 		});
 });
 
@@ -18,9 +17,8 @@ router.get('/:id', (req, res) => {
 		.then(manga => {
 			if (!manga) return res.status(404).send({ "error": "No manga found" });
 			res.status(200).send(manga);
-		}).catch(err => {
-			console.error(err);
-			res.status(500).send({ "error": "Internal server error" });
+		}).catch(() => {
+			res.status(404).send({ "error": "Manga not found" });
 		});
 });
 

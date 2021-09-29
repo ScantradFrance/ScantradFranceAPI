@@ -1,13 +1,12 @@
 const User = require('../../models/User');
 const { Router } = require('express');
-const { sf_api: { token } } = require('../../config/secrets');
 
 const router = Router();
 
 router.all('/*', (req, res, next) => {
         const bearerHeader = req.headers["authorization"];
         const bearerToken = bearerHeader === undefined ? null : bearerHeader.split(' ')[1];
-        if (bearerToken !== token) res.status(403).send({"error": "Invalid authentication token"})
+        if (bearerToken !== process.env.API_TOKEN) res.status(403).send({"error": "Invalid authentication token"})
         else next();
 });
 

@@ -1,9 +1,8 @@
 const { get } = require("axios");
 const { load } = require("cheerio");
-const { base_url } = require("../../config/secrets");
 
 function getAll() {
-	return get(`${base_url}mangas`).then(res => {
+	return get(`${process.env.BASE_URL}mangas`).then(res => {
 		const $ = load(res.data);
 		return $(".home .new-manga .manga").map((_, m) => {
 			const last_chapter = $(m).find($(".manga_right .mr-info .mri-bot")).text();
@@ -18,7 +17,7 @@ function getAll() {
 }
 
 function getById(manga_id) {
-	return get(`${base_url}${manga_id}`).then(res => {
+	return get(`${process.env.BASE_URL}${manga_id}`).then(res => {
 		const $ = load(res.data);
 		const card = $("#chap-top");
 		if (!card.length) return null;
@@ -40,7 +39,7 @@ function getById(manga_id) {
 			chapters: card.find($("#chapitres .chapitre")).map((_, c) => ({
 				number: Number($(c).find($(".chl-num")).text().match(/[\d]+/g).pop()),
 				release_date: $(c).find($(".chl-date")).children().get(0).next.data,
-				url: $(c).find($(".hm-link")).attr("href")
+				source: $(c).find($(".hm-link")).attr("href")
 			})).toArray()
 		};
 	});
