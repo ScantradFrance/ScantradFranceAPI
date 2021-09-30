@@ -122,7 +122,7 @@ class MangaLoader:
 
         return mangas
 
-    def _download(self, manga_list: MangaList, nolog: bool, manga_id: str, chapter_number: int):
+    def _download(self, manga_list: MangaList, nolog: bool, manga_id: str, chapter_number: int, simple_index: bool):
         manga_num = len(manga_list)
         for title_index, (title_id, chapters) in enumerate(
             manga_list.items(), 1
@@ -159,16 +159,17 @@ class MangaLoader:
                     with click.progressbar(
                         pages, label=chapter_name, show_pos=True
                     ) as pbar:
-                        self._dl_chap(exporter, pbar)
+                        self._dl_chap(exporter, pbar, simple_index)
                 else:
-                    self._dl_chap(exporter, pages)
+                    self._dl_chap(exporter, pages, simple_index)
 
                 exporter.close()
 
     def _dl_chap(
         self,
         exporter,
-        pages
+        pages,
+        simple_index
     ):
         page_counter = count()
         for page_index, page in zip(page_counter, pages):
@@ -176,7 +177,7 @@ class MangaLoader:
             image_blob = self._decrypt_image(
                 page.image_url, page.encryption_key
             )
-            if PageType(page.type) == PageType.double:
+            if not simple_index and PageType(page.type) == PageType.double:
                 page_index = range(page_index, next(page_counter))
             exporter.add_image(image_blob, page_index)
 
@@ -191,8 +192,9 @@ class MangaLoader:
         nolog: bool = False,
         manga_id: str = None,
         chapter_number: int = 0,
+        simple_index: bool = False
     ):
         manga_list = self._normalize_ids(
             title_ids, chapter_ids, min_chapter, max_chapter, last_chapter
         )
-        self._download(manga_list, nolog, manga_id, chapter_number)
+        self._download(manga_list, nolog, manga_id, chapter_number, simple_index)

@@ -136,6 +136,15 @@ Examples:
     expose_value=True,
 )
 @click.option(
+    "--simple-index",
+    "-si",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Do not split double pages number",
+    envvar="MLOADER_NOLOG",
+)
+@click.option(
     "--quality",
     "-q",
     default="super_high",
@@ -209,6 +218,7 @@ def main(
     nolog: bool,
     id: str,
     number: int,
+    simple_index: bool,
     quality: str,
     split: bool,
     begin: int,
@@ -243,6 +253,7 @@ def main(
             nolog=nolog,
             manga_id=id,
             chapter_number=number,
+            simple_index=simple_index,
         )
     except Exception:
         log.exception("Failed to download manga")

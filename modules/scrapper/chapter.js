@@ -95,9 +95,10 @@ function getUrl(manga_id, number) {
 
 function saveMangaPlusPages(manga_id, number) {
 	getUrl(manga_id, number).then(url => {
+		if (!url.includes("mangaplus")) return;
 		const mangaplus_id = url.match(/[\d]+/g).pop();
 		stat(MANGAPLUS_PATH + manga_id + "/" + number).catch(() => {
-			spawn('mloader', ['-nl', '-r', '-c', mangaplus_id, '-o', MANGAPLUS_PATH, '-i', manga_id, '-n', number]);
+			spawn('mloader', ['-nl', '-r', '-si', '-c', mangaplus_id, '-o', MANGAPLUS_PATH, '-i', manga_id, '-n', number]);
 		});
 	}).catch(() => {});
 }
