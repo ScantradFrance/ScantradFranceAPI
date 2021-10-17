@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { post } = require('axios');
 const express = require('express');
-require('dotenv').config()
+require('dotenv').config();
 const RssFeedEmitter = require('rss-feed-emitter');
 const User = require('./models/User');
 const WebSocket = require('ws');
@@ -70,7 +70,7 @@ feeder.on('chapitres', function (item) {
 		}).catch(console.error);
 	}).catch(console.error);
 	// Mangaplus
-	saveMangaPlusPages(chapter.manga.id, chapter.number);
+	saveMangaPlusPages(chapter.manga.id, chapter.number).catch(() => {});
 });
 feeder.on('error', () => {});
 cutByMatch = (str, regex) => Array.from(str.matchAll(regex), x => x[1])[0];
