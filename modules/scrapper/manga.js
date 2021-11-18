@@ -23,7 +23,7 @@ function getById(manga_id) {
 		if (!card.length) return null;
 		const topinfos = card.find($(".ct-top"));
 		const title = topinfos.find($(".titre"))["0"].children;
-		const subinfos = topinfos.find($(".info .info .sub-i")).map((_, m) => ({
+		const subinfos = topinfos.find($('.info .info .sub-i:not(:contains("collection Myutaku"))')).map((_, m) => ({
 			type: m.children[0].data.split(" ")[0].toLowerCase(),
 			items: $(m).find($(".snm-button")).map((_, i) => $(i).text()).toArray()
 		})).toArray();
