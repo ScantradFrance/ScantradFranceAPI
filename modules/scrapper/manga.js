@@ -37,7 +37,7 @@ function getById(manga_id) {
 			synopsis: card.find($(".new-main p")).text(),
 			authors: $(title[1]).text().replace(/^de /gm, "") || undefined,
 			chapters: card.find($("#chapitres .chapitre")).map((_, c) => ({
-				number: Number($(c).find($(".chl-num")).text().match(/[\d]+/g).pop()),
+				number: Number($(c).find($(".chl-num")).text().match(/[\d|.]+/g).pop()),
 				release_date: $(c).find($(".chl-date")).children().get(0).next.data,
 				source: $(c).find($(".hm-link")).attr("href")
 			})).toArray()
