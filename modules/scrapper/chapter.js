@@ -14,7 +14,7 @@ function getRecents(limit = 20) {
 		const $ = load(res.data);
 		return $("#home-chapter .home-manga").map((_, c) => ({
 			title: $(c).find($(".hm-info .hmi-sub .hm-font")).text().replace(/^ : /gm, ""),
-			number: Number($(c).find($(".hmi-sub > span")).text().match(/[\d|.]+/g).pop()),
+			number: Number($(c).find($(".hmi-sub > span:first-child")).text().match(/[\d|.]+/g).pop()),
 			release_date: $(c).find($(".hmr-date .hm-font")).get(0).next.data,
 			source: $(c).find($(".hmi-sub")).attr("href"),
 			manga: {
