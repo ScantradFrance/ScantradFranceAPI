@@ -28,7 +28,6 @@ router.get('/:limit(\\d+)', (req, res) => {
 router.get('/:id/:number([\\d|\\.]+)', (req, res) => {
 	scrapper.getPages(req.params.id, req.params.number).then(pages => {
 		scrapper.getUrl(req.params.id, req.params.number).then(url => {
-			if (!(pages.urls || []).length) return res.status(404).send({ "error": "No page found" });
 			scrapper.getPagesUrl(pages, url).then(({length, urls}) => {
 				if (!urls || !urls.length) return res.status(404).send({ "error": "No page found" });
 				res.status(200).send({ length: length, pages: urls });
