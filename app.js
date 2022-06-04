@@ -28,7 +28,7 @@ app.use(function(_req, res) {
 
 // Websocket
 const wss = new WebSocket.Server({ noServer: true });
-const server = app.listen(process.env.PORT, () => console.info(`Listening at http://localhost:${process.env.PORT}`));
+const server = app.listen(process.env.PORT, '127.0.0.1', () => console.info(`Listening at http://localhost:${process.env.PORT}`));
 server.on('upgrade', (request, socket, head) => { wss.handleUpgrade(request, socket, head, () => { }); });
 
 // RSS Feed
