@@ -112,7 +112,7 @@ Examples:
 )
 @click.option(
     "--nolog",
-    "-nl",
+    "-g",
     is_flag=True,
     default=False,
     show_default=True,
@@ -137,7 +137,7 @@ Examples:
 )
 @click.option(
     "--simple-index",
-    "-si",
+    "-x",
     is_flag=True,
     default=False,
     show_default=True,

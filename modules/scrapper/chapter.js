@@ -35,13 +35,13 @@ function getPages(manga_id, number) {
 		const $ = load(res.data);
 		const card = $("#lel");
 		if (!card.length) return null;
-		return { manga_id, number, urls: card.find($(".main .sc-lel img")).map((_, p) => process.env.PAGES_URL + $(p).attr("data-src")).toArray().filter(p => p.includes("lel")).map(p => `${process.env.API_SHARED_URL}chapters/page/${p.replace(/(\D+)/g, "")}`)};
+		return { manga_id, number, urls: card.find($(".main .sc-lel img")).map((_, p) => process.env.PAGES_URL + $(p).attr("data-src")).toArray().filter(p => p.includes("lel")).map(p => `${process.env.API_SHARED_URL}chapters/page/${p.replace(/(\D+)/g, "")}`) };
 	});
 }
 
-async function getPagesUrl({ manga_id, number, urls: pages}, source) {
+async function getPagesUrl({ manga_id, number, urls: pages }, source) {
 	if (source.includes("mangaplus")) {
-		const length = (await readdir(MANGAPLUS_PATH + manga_id + "/" + number).catch(() => {})).length;
+		const length = (await readdir(MANGAPLUS_PATH + manga_id + "/" + number).catch(() => { })).length;
 		return {
 			length,
 			urls: await Promise.all(new Array(length).fill().map(async (_, i) => {
@@ -86,7 +86,7 @@ function getImageData(data, { top, width, height }) {
 
 async function getPage(page_number, { source, manga_id, number }) {
 	if (source === "mangaplus") return new Promise(resolve => readFile(MANGAPLUS_PATH + manga_id + "/" + number + "/" + page_number + ".jpg").then(data => resolve({ data })).catch(() => resolve([])));
-	return get(`${process.env.PAGES_URL}lel/${page_number}.png`, { responseType: 'arraybuffer', headers: { Referer: process.env.BASE_URL }});
+	return get(`${process.env.PAGES_URL}lel/${page_number}.png`, { responseType: 'arraybuffer', headers: { Referer: process.env.BASE_URL } });
 }
 
 function getUrl(manga_id, number) {
@@ -98,7 +98,7 @@ function saveMangaPlusPages(manga_id, number) {
 		if (!url.includes("mangaplus")) return;
 		const mangaplus_id = url.match(/[\d]+/g).pop();
 		return stat(MANGAPLUS_PATH + manga_id + "/" + number).then(() => "The chapter already exists").catch(() => {
-			spawn('mloader', ['-nl', '-r', '-si', '-c', mangaplus_id, '-o', MANGAPLUS_PATH, '-i', manga_id, '-n', number]);
+			spawn('mloader', ['-grx', '-c', mangaplus_id, '-o', MANGAPLUS_PATH, '-i', manga_id, '-n', number]);
 			return "Saved pages in " + MANGAPLUS_PATH + manga_id + "/" + number;
 		});
 	}).catch(() => "Invalid manga id or chapter number");
