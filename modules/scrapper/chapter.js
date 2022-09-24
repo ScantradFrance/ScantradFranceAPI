@@ -68,14 +68,15 @@ export async function getPages(pages) {
 	}
 	const urls = await Promise.all(pages.urls.map(async url => {
 		const { width, height } = await probe(url, { headers: { Referer: process.env.BASE_URL } })
-		if (width * 5 > height) return { uri: `${process.env.API_SHARED_URL}chapters/page/${url.replace(/(\D+)/g, "")}`, width, height }
+		const uri = `${process.env.API_SHARED_URL}chapters/page/${url.replace(/(\D+)/g, "")}`
+		if (width * 5 > height) return { uri, width, height }
 		const cut_h = Math.ceil(width * 13 / 9)
 		const cut = Math.ceil(height / cut_h)
 		const urls = []
 		for (let i = 0; i < cut; i++) {
 			const new_height = i === cut - 1 ? (height % cut_h) || cut_h : cut_h
 			urls.push({
-				uri: `${process.env.API_SHARED_URL}chapters/page/${url.split('/').pop()}?top=${cut_h * i}&width=${width}&height=${new_height}`,
+				uri: `${uri}?top=${cut_h * i}&width=${width}&height=${new_height}`,
 				width: width,
 				height: new_height
 			})
