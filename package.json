@@ -12,6 +12,7 @@
     "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.0.2",
     "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
     "mongoose": "^6.6.1",
     "probe-image-size": "^7.2.3",
     "protobufjs": "^7.1.2",

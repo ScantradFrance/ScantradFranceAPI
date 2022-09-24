@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import RssFeedEmitter from 'rss-feed-emitter'
 import Koa from 'koa'
+import bodyparser from 'koa-bodyparser'
 import { WebSocketServer } from 'ws'
 import mongoose from 'mongoose'
 import User from './models/User.js'
@@ -14,6 +15,7 @@ mongoose.connect(MONGODB_URI).catch(console.error)
 
 // API
 const app = new Koa()
+app.use(bodyparser())
 app.use(api.routes(), api.allowedMethods())
 app.use(ctx => {
 	ctx.status = 404
