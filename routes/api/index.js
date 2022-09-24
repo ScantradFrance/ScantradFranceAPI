@@ -1,11 +1,14 @@
-const { Router } = require('express');
+import Router from '@koa/router'
+import chapterRouter from './chapter.js'
+import mangaRouter from './manga.js'
+import userRouter from './user.js'
 
-module.exports = (() => {
-	const router = Router();
+const apiRouter = new Router({
+	prefix: '/api'
+})
 
-	router.use('/mangas', require('./manga'));
-	router.use('/chapters', require('./chapter'));
-	router.use('/users', require('./user'));
+apiRouter.use(chapterRouter.routes(), chapterRouter.allowedMethods())
+apiRouter.use(mangaRouter.routes(), mangaRouter.allowedMethods())
+apiRouter.use(userRouter.routes(), userRouter.allowedMethods())
 
-	return router;
-})();
+export default apiRouter

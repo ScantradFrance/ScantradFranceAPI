@@ -1,5 +1,2 @@
 node_modules
-package-lock.json
 .env
-modules/mloader/__pycache__
-mangaplus/

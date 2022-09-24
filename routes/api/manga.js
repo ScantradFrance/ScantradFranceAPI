@@ -1,25 +1,30 @@
-const { Router } = require('express');
-const router = Router();
-const scrapper = require('../../modules/scrapper/manga');
+import Router from '@koa/router'
+import * as scrapper from '../../modules/scrapper/manga.js'
 
-router.get('/', (_req, res) => {
-	scrapper.getAll()
-		.then(mangas => {
-			if (!(mangas && mangas.length > 0)) return res.status(404).send({ "error": "No manga found" });
-			res.status(200).send(mangas);
-		}).catch(() => {
-			res.status(404).send({ "error": "No manga found" });
-		});
-});
+const router = new Router({
+	prefix: '/mangas'
+})
 
-router.get('/:id', (req, res) => {
-	scrapper.getById(req.params.id)
-		.then(manga => {
-			if (!manga) return res.status(404).send({ "error": "No manga found" });
-			res.status(200).send(manga);
-		}).catch(() => {
-			res.status(404).send({ "error": "Manga not found" });
-		});
-});
+router.get('/', async ctx => {
+	return scrapper.getAll().then(mangas => {
+		if (!(mangas && mangas.length > 0)) throw new Error()
+		ctx.status = 200
+		ctx.body = mangas
+	}).catch(() => {
+		ctx.status = 404
+		ctx.body = { error: 'No manga found' }
+	})
+})
 
-module.exports = router;
+router.get('/:id', async ctx => {
+	return scrapper.getById(ctx.params.id).then(manga => {
+		if (!manga) throw new Error()
+		ctx.status = 200
+		ctx.body = manga
+	}).catch(() => {
+		ctx.status = 404
+		ctx.body = { error: 'Manga not found' }
+	})
+})
+
+export default router

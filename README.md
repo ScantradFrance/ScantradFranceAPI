@@ -1,9 +1,9 @@
 # ScantradFrance
-API pour voir les chapitres et mangas du site `https://scantrad.net`.
+Restful API to get mangas and chapters from `https://scantrad.net`.
 
 ## Usage
 ```
-npm start
+npm run start
 ```
 
 ## License
