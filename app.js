@@ -10,7 +10,7 @@ const MONGODB_URI = process.env.MONGODB_URI ?? ''
 const PORT = Number(process.env.PORT ?? 3000)
 
 // Database
-// mongoose.connect(MONGODB_URI).catch(console.error)
+mongoose.connect(MONGODB_URI).catch(console.error)
 
 // API
 const app = new Koa()
