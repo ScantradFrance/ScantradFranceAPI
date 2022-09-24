@@ -1,13 +1,10 @@
 # ScantradFrance
-API pour voir les chapitres et mangas du site `https://scantrad.net`.
+Restful API to get mangas and chapters from `https://scantrad.net`.
 
 ## Usage
 ```
-npm start
+npm run start
 ```
-
-## API
-L'API est utilisable sur `https://sf.ldgr.fr/api/`.
 
 ## License
 [ALV](LICENSE)

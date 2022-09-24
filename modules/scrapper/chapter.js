@@ -1,116 +1,100 @@
-const { get } = require("axios");
-const { load } = require("cheerio");
-const sharp = require('sharp');
-const { spawn } = require('child_process');
-const { getById } = require('../../modules/scrapper/manga');
-const { readFile, stat, readdir } = require('fs/promises');
-const sizeOf = require('buffer-image-size');
+import { load } from 'cheerio'
+import sharp from 'sharp'
+import probe from 'probe-image-size'
+import { getById } from './manga.js'
+import * as mangaplus from '../mangaplus/api.js'
 
-const MANGAPLUS_PATH = 'mangaplus/';
-
-function getRecents(limit = 20) {
-	limit = Math.min(Math.max(limit, 1), 20);
-	return get(`${process.env.BASE_URL}`).then(res => {
-		const $ = load(res.data);
-		return $("#home-chapter .home-manga").map((_, c) => ({
-			title: $(c).find($(".hm-info .hmi-sub .hm-font")).text().replace(/^ : /gm, ""),
-			number: Number($(c).find($(".hmi-sub > span:first-child")).text().match(/[\d|.]+/g).pop()),
-			release_date: $(c).find($(".hmr-date .hm-font")).get(0).next.data,
-			source: $(c).find($(".hmi-sub")).attr("href"),
+export async function getRecents(limit = 20) {
+	limit = Math.min(Math.max(limit, 1), 20)
+	return fetch(`${process.env.BASE_URL}`).then(res => { if (!res.ok) { throw new Error('Failed to fetch') } else { return res.text() } }).then(data => {
+		const $ = load(data)
+		return $('#home-chapter .home-manga').map((_, c) => ({
+			title: $(c).find($('.hm-info .hmi-sub .hm-font')).text().replace(/^ : /gm, ''),
+			number: Number($(c).find($('.hmi-sub > span:first-child')).text().match(/[\d|.]+/g).pop()),
+			release_date: $(c).find($('.hmr-date .hm-font')).get(0).next.data,
+			source: $(c).find($('.hmi-sub')).attr('href'),
 			manga: {
-				id: $(c).find($(".hm-image")).attr("data-slug"),
-				name: $(c).find($(".hm-info .hmi-titre span")).text(),
-				thumbnail: $(c).find($(".hm-image img")).attr("data-src")
+				id: $(c).find($('.hm-image')).attr('data-slug'),
+				name: $(c).find($('.hm-info .hmi-titre span')).text(),
+				thumbnail: $(c).find($('.hm-image img')).attr('data-src')
 			}
-		})).toArray().splice(0, limit);
-	});
+		})).toArray().splice(0, limit)
+	})
 }
 
-function getByManga(manga_id) {
-	return getById(manga_id).then(m => m.chapters);
+export async function getByManga(manga_id) {
+	return getById(manga_id).then(m => m.chapters)
 }
 
-function getPages(manga_id, number) {
-	return get(`${process.env.BASE_URL}mangas/${manga_id}/${number}`).then(res => {
-		const $ = load(res.data);
-		const card = $("#lel");
-		if (!card.length) return null;
-		return { manga_id, number, urls: card.find($(".main .sc-lel img")).map((_, p) => process.env.PAGES_URL + $(p).attr("data-src")).toArray().filter(p => p.includes("lel")).map(p => `${process.env.API_SHARED_URL}chapters/page/${p.replace(/(\D+)/g, "")}`) };
-	});
+export async function getSourcePages(manga_id, number) {
+	return fetch(`${process.env.BASE_URL}mangas/${manga_id}/${number}`).then(res => { if (!res.ok) { throw new Error('Failed to fetch') } else { return res.text() } }).then(data => {
+		const $ = load(data)
+		const card = $('#lel')
+		if (!card.length) return null
+		const urls = card
+			.find($('.main .sc-lel img'))
+			.map((_, p) => process.env.PAGES_URL + $(p).attr('data-src'))
+			.toArray()
+			.filter(p => p.includes('lel'))
+		if (urls.length > 0) {
+			return {
+				manga_id,
+				number,
+				urls,
+				source: 'scantrad'
+			}
+		} else {
+			return {
+				manga_id,
+				number: card.find($('.main .next_chapitre')).attr('href').split('/').pop(),
+				source: 'mangaplus'
+			}
+		}
+	})
 }
 
-async function getPagesUrl({ manga_id, number, urls: pages }, source) {
-	if (source.includes("mangaplus")) {
-		const length = (await readdir(MANGAPLUS_PATH + manga_id + "/" + number).catch(() => { })).length;
+export async function getPages(pages) {
+	if (pages.source === 'mangaplus') {
+		const imgs = await mangaplus.getPages(pages.number)
+		const urls = imgs.map(p => ({
+			uri: `${process.env.API_SHARED_URL}chapters/page/mangaplus?url=${encodeURIComponent(p.imageUrl)}&key=${p.encryptionKey}`,
+			width: p.width,
+			height: p.height
+		}))
 		return {
-			length,
-			urls: await Promise.all(new Array(length).fill().map(async (_, i) => {
-				const img = await readFile(MANGAPLUS_PATH + manga_id + "/" + number + "/" + i + ".jpg");
-				const { width, height } = sizeOf(img);
-				return {
-					uri: `${process.env.API_SHARED_URL}chapters/page/${i}?source=mangaplus&manga_id=${manga_id}&number=${number}`,
-					width,
-					height
-				}
-			}))
-		};
+			length: urls.length,
+			urls
+		}
 	}
+	const urls = await Promise.all(pages.urls.map(async url => {
+		const { width, height } = await probe(url, { headers: { Referer: process.env.BASE_URL } })
+		if (width * 5 > height) return { uri: `${process.env.API_SHARED_URL}chapters/page/${url.replace(/(\D+)/g, "")}`, width, height }
+		const cut_h = Math.ceil(width * 13 / 9)
+		const cut = Math.ceil(height / cut_h)
+		const urls = []
+		for (let i = 0; i < cut; i++) {
+			const new_height = i === cut - 1 ? (height % cut_h) || cut_h : cut_h
+			urls.push({
+				uri: `${process.env.API_SHARED_URL}chapters/page/${url.split('/').pop()}?top=${cut_h * i}&width=${width}&height=${new_height}`,
+				width: width,
+				height: new_height
+			})
+		}
+		return urls
+	})).then(arr => arr.flat())
 	return {
 		length: pages.length,
-		urls: await Promise.all(pages.map(async p => {
-			const number = p.split('/').pop();
-			const data = await getPage(number, source).then(r => r && r.data);
-			if (!data || !data.length) return [];
-			const { width, height } = await sharp(data).metadata();
-			if (width * 5 > height) return { uri: p, width: width, height: height };
-			const cut_h = Math.ceil(width * 13 / 9);
-			const cut = Math.ceil(height / cut_h);
-			const urls = [];
-			for (let i = 0; i < cut; i++) {
-				const new_height = i === cut - 1 ? (height % cut_h) || cut_h : cut_h;
-				urls.push({
-					uri: `${process.env.API_SHARED_URL}chapters/page/${number}?top=${cut_h * i}&width=${width}&height=${new_height}`,
-					width: width,
-					height: new_height
-				});
-			}
-			return urls;
-		})).then(arr => arr.flat())
-	};
+		urls: urls
+	}
 }
 
-function getImageData(data, { top, width, height }) {
-	if ([top, width, height].includes(undefined)) return new Promise(resolve => resolve(data));
-	return sharp(data).extract({ top: Number(top), left: 0, width: Number(width), height: Number(height) }).toBuffer();
+export async function getImageData(data, { top, width, height }) {
+	if ([top, width, height].includes(undefined)) return new Promise(resolve => resolve(data))
+	return sharp(data).extract({ top: Number(top), left: 0, width: Number(width), height: Number(height) }).toBuffer()
 }
 
-async function getPage(page_number, { source, manga_id, number }) {
-	if (source === "mangaplus") return new Promise(resolve => readFile(MANGAPLUS_PATH + manga_id + "/" + number + "/" + page_number + ".jpg").then(data => resolve({ data })).catch(() => resolve([])));
-	return get(`${process.env.PAGES_URL}lel/${page_number}.png`, { responseType: 'arraybuffer', headers: { Referer: process.env.BASE_URL } });
-}
-
-function getUrl(manga_id, number) {
-	return getByManga(manga_id).then(res => res.filter(c => c.number == number)[0]?.source);
-}
-
-function saveMangaPlusPages(manga_id, number) {
-	return getUrl(manga_id, number).then(url => {
-		if (!url.includes("mangaplus")) return;
-		const mangaplus_id = url.match(/[\d]+/g).pop();
-		return stat(MANGAPLUS_PATH + manga_id + "/" + number).then(() => "The chapter already exists").catch(() => {
-			spawn('mloader', ['-grx', '-c', mangaplus_id, '-o', MANGAPLUS_PATH, '-i', manga_id, '-n', number]);
-			return "Saved pages in " + MANGAPLUS_PATH + manga_id + "/" + number;
-		});
-	}).catch(() => "Invalid manga id or chapter number");
-}
-
-module.exports = {
-	getRecents: getRecents,
-	getByManga: getByManga,
-	getPages: getPages,
-	getPagesUrl: getPagesUrl,
-	getImageData: getImageData,
-	getPage: getPage,
-	getUrl: getUrl,
-	saveMangaPlusPages: saveMangaPlusPages
+export async function getPage(page_number) {
+	return fetch(`${process.env.PAGES_URL}lel/${page_number}.png`, { headers: { Referer: process.env.BASE_URL } })
+		.then(res => { if (!res.ok) { throw new Error('Failed to fetch') } else { return res.arrayBuffer() } })
+		.then(buf => Buffer.from(buf))
 }
