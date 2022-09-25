@@ -84,7 +84,7 @@ export async function getPages(pages) {
 		return urls
 	})).then(arr => arr.flat())
 	return {
-		length: pages.length,
+		length: urls.length,
 		urls: urls
 	}
 }
