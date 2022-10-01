@@ -35,10 +35,10 @@ feeder.on('chapitres', function (item) {
 	const chapter = {
 		manga: {
 			id: links[0].split('/').pop(),
-			name: cutByMatch(item.title, /Scan - (.*?) Chapitre/g),
+			name: getGroup(item.title, /Scan - (.*?) Chapitre/g),
 			thumbnail: links[1]
 		},
-		title: cutByMatch(item.description.match(/'>(.*?)<\/a>/g).pop(), /'>(.*?)<\/a>/g),
+		title: getGroup(item.description, /">(.*?)<\/a>/g),
 		number: Number(item.link.match(/[^\/]+$/g)[0])
 	}
 	// ws-sf
@@ -49,22 +49,24 @@ feeder.on('chapitres', function (item) {
 	// Mobile app
 	User.find({ follows: chapter.manga.id }).exec().then(ret => ret.map(e => e.token)).then(tokens => {
 		if (!tokens.length) return
-		post('https://exp.host/--/api/v2/push/send', {
-			to: tokens,
-			title: `${chapter.manga.name} - ${chapter.number}`,
-			body: chapter.title,
-			priority: 'default',
-			sound: 'default',
-			channelId: 'default',
-		}, {
+		fetch('https://exp.host/--/api/v2/push/send', {
+			method: 'post',
 			headers: {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
 				'accept-encoding': 'gzip, deflate',
 				'host': 'exp.host'
 			},
+			body: JSON.stringify({
+				to: tokens,
+				title: `${chapter.manga.name} - ${chapter.number}`,
+				body: chapter.title,
+				priority: 'default',
+				sound: 'default',
+				channelId: 'default',
+			})
 		}).catch(console.error)
 	}).catch(console.error)
 })
 feeder.on('error', () => { })
-function cutByMatch(str, regex) { return Array.from(str.matchAll(regex), x => x[1])[0] }
+function getGroup(str, regex) { return Array.from(str.matchAll(regex)).pop()[1] }
